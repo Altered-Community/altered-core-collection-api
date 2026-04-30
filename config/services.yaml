@@ -1,0 +1,33 @@
+parameters:
+    keycloak_base_url: '%env(KEYCLOAK_BASE_URL)%'
+    keycloak_realm: '%env(KEYCLOAK_REALM)%'
+
+services:
+    _defaults:
+        autowire: true
+        autoconfigure: true
+
+    App\:
+        resource: '../src/'
+        exclude:
+            - '../src/DependencyInjection/'
+            - '../src/Entity/'
+            - '../src/Kernel.php'
+
+    App\Service\KeycloakJwtDecoder:
+        arguments:
+            $keycloakBaseUrl: '%keycloak_base_url%'
+            $keycloakRealm: '%keycloak_realm%'
+            $appSecret: '%env(APP_SECRET)%'
+            $devAuthEnabled: '%env(bool:DEV_AUTH_ENABLED)%'
+
+    App\Security\KeycloakAuthenticator: ~
+
+    App\Controller\DevAuthController:
+        arguments:
+            $appSecret: '%env(APP_SECRET)%'
+            $devAuthEnabled: '%env(bool:DEV_AUTH_ENABLED)%'
+
+    App\Client\AlteredCoreClient:
+        arguments:
+            $alteredCoreUrl: '%env(ALTERED_CORE_URL)%'

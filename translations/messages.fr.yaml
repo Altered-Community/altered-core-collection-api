@@ -1,0 +1,66 @@
+homepage:
+  badge: "REST · JSON · API Platform"
+  subtitle: "API de gestion de collection de cartes Altered TCG. Ajoutez, modifiez et consultez vos cartes avec filtres avancés — sécurisé par JWT."
+  btn_docs: "Parcourir la doc API →"
+  btn_dev_auth: "Token de dev"
+
+  section_auth: Authentification
+  auth_desc: "Toutes les routes <code class=\"text-indigo-300 bg-gray-800 px-1.5 py-0.5 rounded text-xs\">/api/collection</code> requièrent un Bearer token JWT dans l'en-tête <code class=\"text-indigo-300 bg-gray-800 px-1.5 py-0.5 rounded text-xs\">Authorization</code>."
+  auth_dev_note: "En développement, générez un token avec <code class=\"text-indigo-300 bg-gray-800 px-1.5 py-0.5 rounded text-xs\">POST /api/dev/auth</code> (nécessite <code class=\"text-indigo-300 bg-gray-800 px-1.5 py-0.5 rounded text-xs\">DEV_AUTH_ENABLED=true</code>)."
+
+  section_endpoints: Endpoints
+  section_endpoints_desc: "Les réponses ne sont pas paginées. Chaque carte retourne les métadonnées enrichies depuis l'API Altered."
+
+  method_get: GET
+  method_post: POST
+  method_patch: PATCH
+  method_delete: DELETE
+
+  endpoint_collection_list_desc: "Liste toutes les cartes de votre collection avec filtres avancés."
+  endpoint_collection_get_desc: "Retourne le détail d'une carte de la collection."
+  endpoint_collection_post_desc: "Ajoute une carte à la collection. Les métadonnées sont récupérées automatiquement depuis l'API Altered."
+  endpoint_collection_patch_desc: "Modifie la quantité et/ou le statut foil d'une carte."
+  endpoint_collection_delete_desc: "Supprime une carte de la collection."
+  endpoint_dev_auth_desc: "Génère un JWT de développement (dev uniquement, désactivé en production)."
+
+  filter_examples: Exemples de filtres
+  badge_auth: Authentifié
+  badge_public: Public
+  badge_dev: Dev only
+
+  section_filters: Filtres disponibles
+  filters_desc: "Tous les filtres sont combinables sur <code class=\"text-indigo-300 bg-gray-800 px-1.5 py-0.5 rounded text-xs\">GET /api/collection</code>."
+  filter_exact: exact
+  filter_partial: partiel
+  filter_numeric: numérique
+  filter_boolean: booléen
+
+  section_quickstart: "Démarrage rapide"
+  quickstart_desc: "Lister les cartes foil Axiom de la collection."
+  response_label: "réponse"
+
+  section_response: "Exemple de réponse"
+
+  section_batch: "Mode batch"
+  batch_desc: "Trois endpoints dédiés pour importer, mettre à jour ou supprimer plusieurs cartes en un seul appel. Maximum <strong>100 entrées</strong> par requête. Les doublons et IDs inconnus sont ignorés silencieusement."
+  batch_post_desc: "Importe plusieurs cartes d'un coup. Les cartes déjà présentes en collection sont ignorées. Les métadonnées sont récupérées en un seul appel à l'API Altered."
+  batch_patch_desc: "Met à jour la quantité et/ou le statut foil de plusieurs cartes en une requête."
+  batch_delete_desc: "Supprime plusieurs cartes par leurs IDs en une requête."
+  batch_field_cards: "Tableau de cartes à ajouter"
+  batch_field_updates: "Tableau de mises à jour"
+  batch_field_ids: "Tableau d'IDs à supprimer"
+  batch_field_cardReference: "Référence de la carte (obligatoire)"
+  batch_field_quantity: "Quantité (0–99, défaut : 1)"
+  batch_field_isFoil: "Foil (défaut : false)"
+  batch_field_id: "ID de la carte en collection"
+  batch_response_created: "Cartes créées (groupe collection:read)"
+  batch_response_skipped: "Références déjà en collection"
+  batch_response_updated: "Nombre de cartes modifiées"
+  batch_response_deleted: "Nombre de cartes supprimées"
+  batch_label_request: "corps de la requête"
+  batch_label_response: "réponse"
+  batch_note_skip: "Ignoré si déjà en collection"
+  batch_note_unknown: "Ignoré si ID inconnu ou appartient à un autre utilisateur"
+
+  footer_text: "Altered Collection API — Projet personnel. Non affilié à Equinox."
+  footer_link: "Documentation API →"

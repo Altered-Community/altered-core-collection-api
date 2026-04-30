@@ -1,0 +1,17 @@
+api_platform:
+    title: Altered Collection API
+    version: 1.0.0
+    defaults:
+        stateless: true
+        cache_headers:
+            vary: ['Content-Type', 'Authorization', 'Origin']
+        pagination_client_items_per_page: true
+        pagination_maximum_items_per_page: 1000
+    formats:
+        json: ['application/json']
+    error_formats:
+        json: ['application/json']
+    patch_formats:
+        json: ['application/merge-patch+json']
+    docs_formats:
+        json: ['application/json']
