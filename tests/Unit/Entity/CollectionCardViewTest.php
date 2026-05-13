@@ -17,14 +17,17 @@ class CollectionCardViewTest extends TestCase
     public function testFillFromApiDataSetsAllFields(): void
     {
         $this->view->fillFromApiData([
-            'set'        => ['reference' => 'COREKS'],
-            'faction'    => ['code' => 'AX'],
-            'cardRarity' => ['reference' => 'COMMON'],
-            'name'       => 'Test Card',
-            'imagePath'  => '/images/test.jpg',
-            'mainCost'   => 3,
-            'recallCost' => 2,
-            'cardType'   => ['reference' => 'CHARACTER'],
+            'set'       => ['reference' => 'COREKS'],
+            'imagePath' => '/images/test.jpg',
+            'variation' => 'standard',
+            'cardGroup' => [
+                'faction'    => ['code' => 'AX'],
+                'rarity'     => ['reference' => 'COMMON'],
+                'name'       => 'Test Card',
+                'mainCost'   => 3,
+                'recallCost' => 2,
+                'cardType'   => ['reference' => 'CHARACTER'],
+            ],
         ]);
 
         $this->assertSame('COREKS', $this->view->getCardSet());
@@ -40,7 +43,7 @@ class CollectionCardViewTest extends TestCase
     public function testFillFromApiDataWithLocalizedNameUsesRequestedLocale(): void
     {
         $this->view->fillFromApiData([
-            'name' => ['fr' => 'Carte Test', 'en' => 'Test Card'],
+            'cardGroup' => ['name' => ['fr' => 'Carte Test', 'en' => 'Test Card']],
         ], 'en');
 
         $this->assertSame('Test Card', $this->view->getName());
@@ -49,7 +52,7 @@ class CollectionCardViewTest extends TestCase
     public function testFillFromApiDataWithLocalizedNameFallsBackToFrench(): void
     {
         $this->view->fillFromApiData([
-            'name' => ['fr' => 'Carte Test'],
+            'cardGroup' => ['name' => ['fr' => 'Carte Test']],
         ], 'de');
 
         $this->assertSame('Carte Test', $this->view->getName());
@@ -81,7 +84,7 @@ class CollectionCardViewTest extends TestCase
     public function testFillFromApiDataWithStringCardType(): void
     {
         $this->view->fillFromApiData([
-            'cardType' => 'SPELL',
+            'cardGroup' => ['cardType' => 'SPELL'],
         ]);
 
         $this->assertSame('SPELL', $this->view->getCardType());
@@ -90,8 +93,7 @@ class CollectionCardViewTest extends TestCase
     public function testFillFromApiDataCastsStringCostsToInt(): void
     {
         $this->view->fillFromApiData([
-            'mainCost'   => '5',
-            'recallCost' => '0',
+            'cardGroup' => ['mainCost' => '5', 'recallCost' => '0'],
         ]);
 
         $this->assertSame(5, $this->view->getMainCost());

@@ -36,13 +36,13 @@ class CollectionCardViewRepository extends ServiceEntityRepository
             ->orderBy('v.cardReference', 'ASC');
 
         if (!empty($filters['cardSet'])) {
-            $qb->andWhere('v.cardSet = :cardSet')->setParameter('cardSet', $filters['cardSet']);
+            $qb->andWhere('v.cardSet IN (:cardSet)')->setParameter('cardSet', (array) $filters['cardSet']);
         }
         if (!empty($filters['faction'])) {
-            $qb->andWhere('v.faction = :faction')->setParameter('faction', $filters['faction']);
+            $qb->andWhere('v.faction IN (:faction)')->setParameter('faction', (array) $filters['faction']);
         }
         if (!empty($filters['rarity'])) {
-            $qb->andWhere('v.rarity = :rarity')->setParameter('rarity', $filters['rarity']);
+            $qb->andWhere('v.rarity IN (:rarity)')->setParameter('rarity', (array) $filters['rarity']);
         }
         if (!empty($filters['cardReference'])) {
             $qb->andWhere('v.cardReference LIKE :cardRef')->setParameter('cardRef', '%'.$filters['cardReference'].'%');

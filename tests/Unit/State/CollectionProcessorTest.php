@@ -78,10 +78,12 @@ class CollectionProcessorTest extends TestCase
 
         $apiData = [
             $ref => [
-                'set'        => ['reference' => 'COREKS'],
-                'faction'    => ['code' => 'AX'],
-                'cardRarity' => ['reference' => 'COMMON'],
-                'name'       => 'Yzmir Stargazer',
+                'set'       => ['reference' => 'COREKS'],
+                'cardGroup' => [
+                    'faction' => ['code' => 'AX'],
+                    'rarity'  => ['reference' => 'COMMON'],
+                    'name'    => 'Yzmir Stargazer',
+                ],
             ],
         ];
         $this->alteredCoreClient->expects($this->once())
