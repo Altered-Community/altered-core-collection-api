@@ -81,6 +81,21 @@ class CollectionCardViewTest extends TestCase
         $this->assertNull($this->view->getCardType());
     }
 
+    public function testFillFromApiDataDerivesCardSetFromReferenceWhenApiSetIsNull(): void
+    {
+        $this->view->setCardReference('ALT_EOLECB_A_AX_106_C');
+        $this->view->fillFromApiData(['set' => null]);
+
+        $this->assertSame('EOLECB', $this->view->getCardSet());
+    }
+
+    public function testFillFromApiDataWithEmptyDataAndNoCardReferenceDefaultsToEmptyCardSet(): void
+    {
+        $this->view->fillFromApiData([]);
+
+        $this->assertSame('', $this->view->getCardSet());
+    }
+
     public function testFillFromApiDataWithStringCardType(): void
     {
         $this->view->fillFromApiData([

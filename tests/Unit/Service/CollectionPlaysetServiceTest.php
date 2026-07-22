@@ -212,6 +212,44 @@ class CollectionPlaysetServiceTest extends TestCase
         $this->assertSame(7, $q['0']);   // 10 universe − 3 owned distinct cards
     }
 
+    public function testComputePlaysetMergesEoleAndEolecbAtTheCardLevel(): void
+    {
+        // Same card owned 1×EOLECB + 2×EOLE → a single card ×3 (bucket "3+").
+        $this->viewRepository->method('findOwnedCardQuantities')->willReturn([
+            ['faction' => 'AX', 'cardSet' => 'EOLE',   'cardReference' => 'ALT_EOLE_B_AX_106_C',   'quantity' => 2],
+            ['faction' => 'AX', 'cardSet' => 'EOLECB', 'cardReference' => 'ALT_EOLECB_A_AX_106_C', 'quantity' => 1],
+        ]);
+        $this->mockUniverse($this->universe([['AX', 'EOLE', 10]]));
+
+        $grid = $this->service->computePlayset($this->user)['byFactionAndSet'];
+        $q    = $this->findCombo($grid, 'AX', 'EOLE')['quantities'];
+
+        $this->assertSame(0, $q['1']);
+        $this->assertSame(0, $q['2']);
+        $this->assertSame(1, $q['3+']);  // 1×EOLECB + 2×EOLE merged into one ×3 card
+        $this->assertSame(9, $q['0']);   // 10 universe − 1 owned distinct card
+    }
+
+    public function testComputePlaysetMergesPerCardAliasesToDifferentCanonicalSets(): void
+    {
+        // DUSTERTOP's OR_08_R1 aliases to CORE while MUSUBI's OR_66_R1 aliases to CYCLONE — same
+        // kind of source token in both cases, but CARD_ALIASES sends them to different targets,
+        // which a whole-token SET_ALIASES entry could never express.
+        $this->viewRepository->method('findOwnedCardQuantities')->willReturn([
+            ['faction' => 'OR', 'cardSet' => 'DUSTERTOP', 'cardReference' => 'ALT_DUSTERTOP_P_OR_08_R1', 'quantity' => 1],
+            ['faction' => 'OR', 'cardSet' => 'MUSUBI',    'cardReference' => 'ALT_MUSUBI_B_OR_66_R1',    'quantity' => 1],
+        ]);
+        $this->mockUniverse($this->universe([['OR', 'CORE', 10], ['OR', 'CYCLONE', 10]]));
+
+        $grid = $this->service->computePlayset($this->user)['byFactionAndSet'];
+
+        $core = $this->findCombo($grid, 'OR', 'CORE')['quantities'];
+        $this->assertSame(1, $core['1']); // DUSTERTOP's OR_08_R1 folded onto CORE, not DUSTER
+
+        $cyclone = $this->findCombo($grid, 'OR', 'CYCLONE')['quantities'];
+        $this->assertSame(1, $cyclone['1']); // MUSUBI's OR_66_R1 folded onto CYCLONE, not CORE
+    }
+
     public function testComputePlaysetMergesCardProductsOnBothSides(): void
     {
         // The same card (AX_50_C) is printed in products A and B: the universe must count it ONCE,
@@ -299,6 +337,7 @@ class CollectionPlaysetServiceTest extends TestCase
         $expectedSets = array_values(array_unique(array_merge(
             CollectionPlaysetService::SETS,
             array_keys(CollectionPlaysetService::SET_ALIASES),
+            CollectionPlaysetService::cardAliasSourceSets(),
         )));
 
         $this->viewRepository->expects($this->once())
@@ -329,6 +368,7 @@ class CollectionPlaysetServiceTest extends TestCase
         $expectedSets = array_values(array_unique(array_merge(
             CollectionPlaysetService::SETS,
             array_keys(CollectionPlaysetService::SET_ALIASES),
+            CollectionPlaysetService::cardAliasSourceSets(),
         )));
 
         $this->viewRepository->expects($this->once())
