@@ -164,7 +164,7 @@ class CollectionProcessorTest extends TestCase
         $result = $this->processor->process($view, new Post());
 
         $this->assertSame($view, $result);
-        $this->assertSame('', $result->getCardSet());
+        $this->assertSame('CORE', $result->getCardSet()); // derived from the reference itself, since the API had nothing
         $this->assertNull($result->getName());
     }
 }

@@ -159,6 +159,20 @@ class CollectionPlaysetCardsServiceTest extends TestCase
         $this->assertSame(4, $card['versions'][0]['owned']);
     }
 
+    public function testOwnedMergesPerCardAliasFromDustertopOntoCore(): void
+    {
+        // DUSTERTOP's OR_08_R1 is a CARD_ALIASES entry aliasing to CORE (not DUSTER, and not its
+        // own DUSTERTOP bucket) — a whole-token SET_ALIASES entry couldn't express this.
+        $this->mockUniverse([$this->version('ALT_CORE_B_OR_08_R1', 'OR', 'RARE', false, 'CHARACTER', 'CORE')]);
+        $this->viewRepository->method('findOwnedCardQuantities')->willReturn([
+            ['faction' => 'OR', 'cardSet' => 'DUSTERTOP', 'cardReference' => 'ALT_DUSTERTOP_P_OR_08_R1', 'quantity' => 1],
+        ]);
+
+        $card = $this->service->listCards($this->user)['items'][0];
+
+        $this->assertSame(1, $card['versions'][0]['owned']);
+    }
+
     public function testFactionFilterMatchesRealVersionFactionAndKeepsOnlyMatchingVersions(): void
     {
         $this->mockUniverse($this->transfugeCardVersions());

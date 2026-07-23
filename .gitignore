@@ -13,3 +13,11 @@
 /phpunit.xml
 /.phpunit.cache/
 ###< phpunit/phpunit ###
+
+
+###> perso ###
+CLAUDE.md
+GUIDE_STACK.md
+composer.phar
+/set-alias-review/
+###< perso ###

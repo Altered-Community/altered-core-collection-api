@@ -149,6 +149,7 @@ class CollectionPlaysetCardsService
         $sourceSets = array_values(array_unique(array_merge(
             CollectionPlaysetService::SETS,
             array_keys(CollectionPlaysetService::SET_ALIASES),
+            CollectionPlaysetService::cardAliasSourceSets(),
         )));
 
         $rows = $this->viewRepository->findOwnedCardQuantities(
@@ -424,17 +425,23 @@ class CollectionPlaysetCardsService
 
     /**
      * Rewrite a reference onto its canonical printing so owned copies match the displayed version:
-     * the set token is folded onto its canonical edition (COREKS → CORE, see
-     * {@see CollectionPlaysetService::SET_ALIASES}) and the product token is normalised to the
-     * booster product (B). ALT_COREKS_A_AX_01_C → ALT_CORE_B_AX_01_C.
+     * the set token is folded onto its canonical edition — per-card via
+     * {@see CollectionPlaysetService::CARD_ALIASES} first (e.g. DUSTERTOP's OR_08_R1 → CORE), then
+     * whole-token via {@see CollectionPlaysetService::SET_ALIASES} (COREKS → CORE) — and the product
+     * token is normalised to the booster product (B). ALT_COREKS_A_AX_01_C → ALT_CORE_B_AX_01_C.
      */
     private function canonicalReference(string $reference): string
     {
         $parts = explode('_', $reference);
 
         // parts: [ALT, SET, PRODUCT, FACTION, NUM, SUFFIX, ...]
-        if (isset($parts[1]) && isset(CollectionPlaysetService::SET_ALIASES[$parts[1]])) {
-            $parts[1] = CollectionPlaysetService::SET_ALIASES[$parts[1]];
+        if (isset($parts[1])) {
+            $cardKey = $parts[1] . '|' . ($parts[3] ?? '') . '_' . ($parts[4] ?? '') . '_' . ($parts[5] ?? '');
+            if (isset(CollectionPlaysetService::CARD_ALIASES[$cardKey])) {
+                $parts[1] = CollectionPlaysetService::CARD_ALIASES[$cardKey];
+            } elseif (isset(CollectionPlaysetService::SET_ALIASES[$parts[1]])) {
+                $parts[1] = CollectionPlaysetService::SET_ALIASES[$parts[1]];
+            }
         }
         if (isset($parts[2])) {
             $parts[2] = 'B';

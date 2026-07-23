@@ -261,7 +261,7 @@ class CollectionCardView
     /** Populate all card metadata fields from an altered-core API card response. */
     public function fillFromApiData(array $cardData, string $locale = 'fr'): void
     {
-        $this->cardSet  = $cardData['set']['reference'] ?? '';
+        $this->cardSet  = $cardData['set']['reference'] ?? $this->deriveSetFromReference();
         $this->faction  = $cardData['faction']['code'] ?? '';
         $this->rarity   = $cardData['rarity']['reference'] ?? '';
 
@@ -287,5 +287,19 @@ class CollectionCardView
         } else {
             $this->subTypes = null;
         }
+    }
+
+    /**
+     * Fallback for editions altered-core reports with a null `set` (e.g. EOLECB): parse it from
+     * the card's own reference (2nd token, ALT_<SET>_<PRODUCT>_<FACTION>_<NUM>_<SUFFIX>) instead of
+     * trusting the API field, since `cardReference` is always set before fillFromApiData() runs.
+     */
+    private function deriveSetFromReference(): string
+    {
+        if (!isset($this->cardReference)) {
+            return '';
+        }
+
+        return explode('_', $this->cardReference)[1] ?? '';
     }
 }

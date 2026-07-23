@@ -54,7 +54,94 @@ class CollectionPlaysetService
      * (as stored on the cards) → output set code (must be one of {@see self::SETS}). Cards in a
      * source edition are folded onto their canonical edition before bucketing.
      */
-    public const SET_ALIASES = ['COREKS' => 'CORE'];
+    public const SET_ALIASES = [
+        'COREKS' => 'CORE',
+        'EOLECB' => 'EOLE',
+        'WCQ25'  => 'CORE',
+        'WCS26'  => 'DUSTER',
+        'TCS3'   => 'BISE',
+        'JUDGE'  => 'CORE',
+    ];
+
+    /**
+     * Per-card aliases for editions where different cards fold onto different canonical sets —
+     * {@see self::SET_ALIASES} can't express this, since it moves an entire source token onto one
+     * target. Keyed by "SOURCE_SET|FACTION_NUM_SUFFIX" (the card's own faction, number and rarity
+     * suffix tokens from its reference) → target set. Checked before {@see self::SET_ALIASES} in
+     * {@see self::canonicalReference()}.
+     *
+     * `DUSTERTOP` ("Seeds of Unity — Box Topper") reprints chase cards pulled from CORE and ALIZE,
+     * not from Duster itself. `MUSUBI` (a crossover promo mini-set) mostly reprints CORE cards with
+     * a few from CYCLONE. Verified card-by-card (faction, number, rarity suffix, and name) against
+     * every canonical set with zero ambiguous or unmatched cards.
+     */
+    public const CARD_ALIASES = [
+        'DUSTERTOP|OR_08_R1' => 'CORE',
+        'DUSTERTOP|OR_43_R1' => 'ALIZE',
+        'DUSTERTOP|OR_14_C'  => 'CORE',
+        'DUSTERTOP|OR_42_C'  => 'ALIZE',
+        'DUSTERTOP|YZ_12_R1' => 'CORE',
+        'DUSTERTOP|YZ_44_R1' => 'ALIZE',
+        'DUSTERTOP|YZ_06_C'  => 'CORE',
+        'DUSTERTOP|YZ_41_C'  => 'ALIZE',
+        'DUSTERTOP|BR_32_C'  => 'ALIZE',
+        'DUSTERTOP|BR_19_C'  => 'CORE',
+        'DUSTERTOP|BR_38_R1' => 'ALIZE',
+        'DUSTERTOP|BR_30_R1' => 'CORE',
+        'DUSTERTOP|MU_13_C'  => 'CORE',
+        'DUSTERTOP|MU_12_R1' => 'CORE',
+        'DUSTERTOP|MU_44_C'  => 'ALIZE',
+        'DUSTERTOP|MU_33_R1' => 'ALIZE',
+        'DUSTERTOP|LY_04_R1' => 'CORE',
+        'DUSTERTOP|LY_07_C'  => 'CORE',
+        'DUSTERTOP|LY_39_R1' => 'ALIZE',
+        'DUSTERTOP|LY_31_C'  => 'ALIZE',
+        'DUSTERTOP|AX_04_C'  => 'CORE',
+        'DUSTERTOP|AX_20_R1' => 'CORE',
+        'DUSTERTOP|AX_32_R1' => 'ALIZE',
+        'DUSTERTOP|AX_41_C'  => 'ALIZE',
+
+        'MUSUBI|OR_66_R1' => 'CYCLONE',
+        'MUSUBI|OR_09_R1' => 'CORE',
+        'MUSUBI|OR_09_R2' => 'CORE',
+        'MUSUBI|OR_09_C'  => 'CORE',
+        'MUSUBI|YZ_09_C'  => 'CORE',
+        'MUSUBI|YZ_09_R1' => 'CORE',
+        'MUSUBI|YZ_09_R2' => 'CORE',
+        'MUSUBI|YZ_21_C'  => 'CORE',
+        'MUSUBI|BR_04_R1' => 'CORE',
+        'MUSUBI|BR_04_C'  => 'CORE',
+        'MUSUBI|BR_04_R2' => 'CORE',
+        'MUSUBI|BR_74_R1' => 'CYCLONE',
+        'MUSUBI|MU_70_R1' => 'CYCLONE',
+        'MUSUBI|MU_22_R1' => 'CORE',
+        'MUSUBI|MU_22_R2' => 'CORE',
+        'MUSUBI|MU_22_C'  => 'CORE',
+        'MUSUBI|LY_06_C'  => 'CORE',
+        'MUSUBI|LY_06_R2' => 'CORE',
+        'MUSUBI|LY_06_R1' => 'CORE',
+        'MUSUBI|LY_29_R1' => 'CORE',
+        'MUSUBI|AX_09_R1' => 'CORE',
+        'MUSUBI|AX_09_C'  => 'CORE',
+        'MUSUBI|AX_09_R2' => 'CORE',
+        'MUSUBI|AX_30_R1' => 'CORE',
+    ];
+
+    /**
+     * The distinct source-set tokens referenced by {@see self::CARD_ALIASES} (e.g. `DUSTERTOP`,
+     * `MUSUBI`) — needed alongside {@see self::SET_ALIASES} keys when building the list of sets to
+     * query owned quantities for, since a card aliased at the per-card level still needs its source
+     * set included in that query.
+     *
+     * @return list<string>
+     */
+    public static function cardAliasSourceSets(): array
+    {
+        return array_values(array_unique(array_map(
+            static fn (string $key): string => explode('|', $key)[0],
+            array_keys(self::CARD_ALIASES),
+        )));
+    }
 
     /** Altered factions, in output order. */
     public const FACTIONS = ['AX', 'BR', 'LY', 'MU', 'OR', 'YZ'];
@@ -88,7 +175,11 @@ class CollectionPlaysetService
 
         // Query every underlying edition (the output sets plus their merged sources), then fold
         // each card onto its canonical edition and bucket the merged per-card quantities.
-        $sourceSets     = array_values(array_unique(array_merge(self::SETS, array_keys(self::SET_ALIASES))));
+        $sourceSets     = array_values(array_unique(array_merge(
+            self::SETS,
+            array_keys(self::SET_ALIASES),
+            self::cardAliasSourceSets(),
+        )));
         $rows           = $this->viewRepository->findOwnedCardQuantities($user, $sourceSets, $rarities, self::CARD_TYPES);
         $owned          = $this->mergeAndBucket($rows);
         $universeCounts = $this->universeCountsByFactionAndSet($rarities);
@@ -191,7 +282,9 @@ class CollectionPlaysetService
             if (!isset($merged[$key])) {
                 $merged[$key] = [
                     'faction'  => $row['faction'],
-                    'cardSet'  => self::SET_ALIASES[$row['cardSet']] ?? $row['cardSet'],
+                    // Derived from the canonical reference itself (not a second SET_ALIASES lookup
+                    // on the stored cardSet column) so CARD_ALIASES' per-card targets apply here too.
+                    'cardSet'  => explode('_', $key)[1] ?? $row['cardSet'],
                     'quantity' => 0,
                 ];
             }
@@ -219,17 +312,24 @@ class CollectionPlaysetService
 
     /**
      * Rewrite a reference onto its canonical printing so every product/edition of the same card
-     * collapses to one key: the set token is folded onto its canonical edition (COREKS → CORE) and
-     * the product token (3rd) is normalised to the booster product (B).
-     * ALT_COREKS_A_AX_01_C → ALT_CORE_B_AX_01_C. Mirrors {@see CollectionPlaysetCardsService}.
+     * collapses to one key: the set token is folded onto its canonical edition — per-card via
+     * {@see self::CARD_ALIASES} first (e.g. DUSTERTOP's OR_08_R1 → CORE), then whole-token via
+     * {@see self::SET_ALIASES} (COREKS → CORE) — and the product token (3rd) is normalised to the
+     * booster product (B). ALT_COREKS_A_AX_01_C → ALT_CORE_B_AX_01_C. Mirrors
+     * {@see CollectionPlaysetCardsService}.
      */
     private function canonicalReference(string $reference): string
     {
         $parts = explode('_', $reference);
 
         // parts: [ALT, SET, PRODUCT, FACTION, NUM, SUFFIX, ...]
-        if (isset($parts[1]) && isset(self::SET_ALIASES[$parts[1]])) {
-            $parts[1] = self::SET_ALIASES[$parts[1]];
+        if (isset($parts[1])) {
+            $cardKey = $parts[1] . '|' . ($parts[3] ?? '') . '_' . ($parts[4] ?? '') . '_' . ($parts[5] ?? '');
+            if (isset(self::CARD_ALIASES[$cardKey])) {
+                $parts[1] = self::CARD_ALIASES[$cardKey];
+            } elseif (isset(self::SET_ALIASES[$parts[1]])) {
+                $parts[1] = self::SET_ALIASES[$parts[1]];
+            }
         }
         if (isset($parts[2])) {
             $parts[2] = 'B';
